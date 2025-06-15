@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame", "src\GitWho2Blame\GitWho2Blame.csproj", "{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A310E22B-A205-4A1C-930F-025BA4201D7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.MCP", "src\GitWho2Blame.MCP\GitWho2Blame.MCP.csproj", "{F088CD32-ADF8-44CC-B646-12BD05F4D05C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.GitHub", "src\GitWho2Blame.GitHub\GitWho2Blame.GitHub.csproj", "{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.Git", "src\GitWho2Blame.Git\GitWho2Blame.Git.csproj", "{E52BE5D3-D1D1-4808-8418-497687698E5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.Models", "src\GitWho2Blame.Models\GitWho2Blame.Models.csproj", "{04059BB1-7690-44E0-83B3-B7FF59CD7F7B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{889A5495-D5AB-4C2D-8B22-70518BAB9BC0}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F088CD32-ADF8-44CC-B646-12BD05F4D05C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F088CD32-ADF8-44CC-B646-12BD05F4D05C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F088CD32-ADF8-44CC-B646-12BD05F4D05C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F088CD32-ADF8-44CC-B646-12BD05F4D05C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E52BE5D3-D1D1-4808-8418-497687698E5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E52BE5D3-D1D1-4808-8418-497687698E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E52BE5D3-D1D1-4808-8418-497687698E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E52BE5D3-D1D1-4808-8418-497687698E5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04059BB1-7690-44E0-83B3-B7FF59CD7F7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04059BB1-7690-44E0-83B3-B7FF59CD7F7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04059BB1-7690-44E0-83B3-B7FF59CD7F7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04059BB1-7690-44E0-83B3-B7FF59CD7F7B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EDEFC92E-1ACB-466F-85BE-9D3D7049DEB9} = {A310E22B-A205-4A1C-930F-025BA4201D7C}
+		{F088CD32-ADF8-44CC-B646-12BD05F4D05C} = {A310E22B-A205-4A1C-930F-025BA4201D7C}
+		{96FCB8E0-D4B6-41F6-9522-0FA9AE96FA46} = {A310E22B-A205-4A1C-930F-025BA4201D7C}
+		{E52BE5D3-D1D1-4808-8418-497687698E5A} = {A310E22B-A205-4A1C-930F-025BA4201D7C}
+		{04059BB1-7690-44E0-83B3-B7FF59CD7F7B} = {A310E22B-A205-4A1C-930F-025BA4201D7C}
+	EndGlobalSection
+EndGlobal
