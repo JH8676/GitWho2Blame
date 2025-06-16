@@ -52,7 +52,7 @@ public class GitHubContextProvider : IGitContextProvider
 
         foreach (var commitSummary in commitSummaries)
         {
-            var commit = await _client.Repository.Commit.Get("JH8676", repoName, commitSummary.Sha);
+            var commit = await _client.Repository.Commit.Get(owner, repoName, commitSummary.Sha);
             _logger.LogInformation("Processing commit {Sha} with {FileCount} files",
                 commitSummary.Sha,
                 commit.Files.Count);
@@ -68,14 +68,12 @@ public class GitHubContextProvider : IGitContextProvider
                 continue;
             }
             
-            _logger.LogInformation(file.Patch);
             var patchLines = file.Patch.Split(Environment.NewLine);
             var linesChanged = new List<string>();
             
             var inRelevantHunk = false;
             foreach (var line in patchLines)
             {
-                // TODO source gen regex
                 var hunkHeaderMatch = RegexHelpers.GitHubHunkHeaderRegex().Match(line);
                 if (hunkHeaderMatch.Success)
                 {
