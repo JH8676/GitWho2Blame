@@ -1,17 +1,55 @@
 using System.ComponentModel;
 using System.Text.Json;
 using GitWho2Blame.MCP.Abstractions;
+using GitWho2Blame.Models.Requests;
+using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 
 namespace GitWho2Blame.MCP;
 
 [McpServerToolType]
-public class Tools(IGitContextProvider gitContextProvider, IGitService gitService)
+public class Tools(IGitService gitService, IGitContextProvider gitContextProvider, ILogger<Tools> logger)
 {
     [McpServerTool, Description("Gets the blame for a range of lines in a file.")]
-    public string Blame(string path, int startLine, int endLine)
+    public string Blame(BaseRequest request, int startLine, int endLine)
     {
-        var changes = gitService.GetBlameForLinesAsync(path, startLine, endLine);
+        var changes = gitService.GetBlameForLinesAsync(
+            request.RelativeFilePath, 
+            request.RepoRootPath,
+            startLine, 
+            endLine);
+        
         return JsonSerializer.Serialize(changes);
+    }
+    
+    // TODO: improve description, agent did not use this when I asked what had changed in a section, only when mentioning commits
+    [McpServerTool, Description("Summarizes GitHub commits that affected a specific section of a file. The summary includes commit SHA, author, message, date, and the changed lines in the given line range.")]
+    public async Task<string> GetCodeChangesSummaryAsync(BaseRequest request, string repoName, int startLine, int endLine)
+    {
+        logger.LogInformation("Getting code changes summary for {RelativeFilePath} in repository {RepoRootPath} from line {StartLine} to line {EndLine}",
+            request.RelativeFilePath, 
+            repoName, 
+            startLine, 
+            endLine);
+        
+        var owner = gitService.GetRepositoryOwner(request.RepoRootPath);
+        if (owner == null)
+        {
+            logger.LogInformation("No owner found for {RepoRootPath}", request.RepoRootPath);
+            return "No owner found for the repository.";
+        }
+        
+        var changes = await gitContextProvider.GetCodeChangesAsync(
+            request.RelativeFilePath,
+            repoName,
+            owner,
+            startLine,
+            endLine,
+            DateTime.Now.AddDays(-30));
+        
+        var response = JsonSerializer.Serialize(changes);
+        
+        logger.LogInformation("GitHub code changes summary: {Response}", response);
+        return response;
     }
 }

@@ -1,40 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using ModelContextProtocol.Server;
-using System.ComponentModel;
+﻿using Microsoft.Extensions.Hosting;
 using GitWho2Blame.Git.Startup;
-using GitWho2Blame.GitHub.Startup;
-using GitWho2Blame.MCP.Abstractions;
 using GitWho2Blame.MCP.Startup;
+using GitWho2Blame.Startup;
+using Serilog;
+
+using ServiceExtensions = GitWho2Blame.Startup.ServiceExtensions;
 
 var builder = Host.CreateApplicationBuilder(args);
-switch (args)
-{
-    case ["--git-context-provider", var provider]:
-        switch (provider)
-        {
-            case "github":
-            {
-                builder.Services.AddGitHubServices();
-                break;
-            }
-            default: throw new ArgumentException($"Unknown git context provider: {provider}");
-        }
 
-        break;
-    
-    default: throw new ArgumentException("Expected --git-context-provider argument");
-};
+builder.Logging.ConfigureLogging();
 
-builder.Logging.AddConsole(consoleLogOptions =>
-{
-    // Configure all logs to go to stderr
-    consoleLogOptions.LogToStandardErrorThreshold = LogLevel.Trace;
-});
+ServiceExtensions.AddGlobalExceptionHandlers();
 
 builder.Services
+    .HandleArgs(builder.Configuration, args)
     .AddGitServices()
     .AddMcpServerServices();
+
+Log.Information("GitWho2Blame MCP server starting...");
 
 await builder.Build().RunAsync();

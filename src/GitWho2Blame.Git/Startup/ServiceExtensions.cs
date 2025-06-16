@@ -8,7 +8,7 @@ public static class ServiceExtensions
     public static IServiceCollection AddGitServices(this IServiceCollection services)
     {
         services
-            .AddSingleton<IGitService, GitService>(_ => new GitService("path/to/git/repo route"));
+            .AddSingleton<IGitService, GitService>();
 
         return services;
     }

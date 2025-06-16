@@ -1,33 +1,28 @@
+using GitWho2Blame.Git.Helpers;
 using GitWho2Blame.MCP.Abstractions;
 using GitWho2Blame.Models;
 using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
 
 namespace GitWho2Blame.Git;
 
-public class GitService : IGitService
+public class GitService(ILogger<GitService> logger) 
+    : IGitService
 {
-    private readonly string _repositoryPath;
-
-    public GitService(string repositoryPath)
-    {
-        _repositoryPath = repositoryPath;
-        // Initialize any required services or configurations here
-    }
-
-    public List<CodeLineChange> GetBlameForLinesAsync(string filePath, int startLine, int endLine)
+    public List<CodeLineChange> GetBlameForLinesAsync(string relativeFilePath, string repoRootPath, int startLine, int endLine)
     {
         var result = new List<CodeLineChange>();
-
-        var repoPath = Repository.Discover(_repositoryPath);
+        
+        var repoPath = Repository.Discover(repoRootPath);
+        
         using var repo = new Repository(repoPath);
-        var relPath = Path.GetRelativePath(repoPath, filePath);
-        var blame = repo.Blame(relPath);
+        var blame = repo.Blame(relativeFilePath);
         
         foreach (var hunk in blame)
         {
-            for (int i = 0; i < hunk.LineCount; i++)
+            for (var i = 0; i < hunk.LineCount; i++)
             {
-                int line = hunk.FinalStartLineNumber + i;
+                var line = hunk.FinalStartLineNumber + i;
                 if (line >= startLine && line <= endLine)
                 {
                     result.Add(new CodeLineChange
@@ -43,5 +38,23 @@ public class GitService : IGitService
         }
 
         return result;
+    }
+    
+    public string? GetRepositoryOwner(string repoRootPath)
+    {
+        var repoPath = Repository.Discover(repoRootPath);
+        using var repo = new Repository(repoPath);
+
+        var url = repo.Network.Remotes.FirstOrDefault()?.Url;
+        if (url == null)
+        {
+            return null;
+        }
+        
+        var match = RegexHelpers.GitHubOwnerFromUrlRegex().Match(url);
+        var owner = match.Success ? match.Groups[1].Value : "Unknown";
+        
+        logger.LogInformation("Repository owner extracted: {Owner}", owner);
+        return owner;
     }
 }
