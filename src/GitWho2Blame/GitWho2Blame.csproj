@@ -10,6 +10,7 @@
   </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\GitWho2Blame.Azure\GitWho2Blame.Azure.csproj" />
       <ProjectReference Include="..\GitWho2Blame.GitHub\GitWho2Blame.GitHub.csproj" />
       <ProjectReference Include="..\GitWho2Blame.Git\GitWho2Blame.Git.csproj" />
       <ProjectReference Include="..\GitWho2Blame.MCP\GitWho2Blame.MCP.csproj" />

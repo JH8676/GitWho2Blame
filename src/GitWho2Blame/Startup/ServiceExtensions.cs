@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using GitWho2Blame.Azure.Startup;
 using GitWho2Blame.GitHub.Startup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,6 +61,11 @@ public static class ServiceExtensions
                 case "github":
                 {
                     services.AddGitHubServices(configuration);
+                    break;
+                }
+                case "azure":
+                {
+                    services.AddAzureGitServices(configuration);
                     break;
                 }
                 default: throw new ArgumentException($"Unknown git context provider: {provider}");

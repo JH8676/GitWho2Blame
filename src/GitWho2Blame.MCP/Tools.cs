@@ -45,11 +45,9 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
             owner,
             startLine,
             endLine,
-            DateTime.Now.AddDays(-30));
+            DateTime.Now.AddDays(-30)); // TODO remove hardcoded date, use a parameter instead
         
         var response = JsonSerializer.Serialize(changes);
-        
-        logger.LogInformation("GitHub code changes summary: {Response}", response);
         return response;
     }
 }
