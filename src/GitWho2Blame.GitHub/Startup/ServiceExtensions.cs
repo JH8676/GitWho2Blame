@@ -10,12 +10,6 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddGitHubServices(this IServiceCollection services, IConfigurationManager configuration)
     {
-        configuration.AddUserSecrets(Assembly.GetCallingAssembly(), optional: false);
-        
-        // services.Configure<GitHubOptions>(
-        //     configuration.GetSection(GitHubOptions.GitHub)
-        // );
-
         services.Configure<GitHubOptions>(options =>
         {
             options.Token = Environment.GetEnvironmentVariable("TOKEN")

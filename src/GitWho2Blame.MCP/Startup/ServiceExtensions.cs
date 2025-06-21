@@ -8,7 +8,8 @@ public static class ServiceExtensions
     {
         services
             .AddMcpServer()
-            .WithStdioServerTransport()
+            // .WithStdioServerTransport()
+            .WithHttpTransport()
             .WithToolsFromAssembly();
         
         return services;

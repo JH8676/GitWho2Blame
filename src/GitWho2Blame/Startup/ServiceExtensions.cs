@@ -33,7 +33,12 @@ public static class ServiceExtensions
         
         return logging
             .ClearProviders()
-            .AddSerilog(dispose: true);
+            .AddSerilog(dispose: true)
+            .AddConsole(consoleLogOptions =>
+            {
+                // Configure all logs to go to stderr
+                consoleLogOptions.LogToStandardErrorThreshold = LogLevel.Trace;
+            });;
     }
     
     public static void AddGlobalExceptionHandlers()

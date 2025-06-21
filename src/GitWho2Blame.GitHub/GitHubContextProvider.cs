@@ -14,8 +14,8 @@ public class GitHubContextProvider : IGitContextProvider
     private readonly GitHubClient _client;
     
     public GitHubContextProvider(
-        IOptions<GitHubOptions> options,
-        ILogger<GitHubContextProvider> logger)
+        ILogger<GitHubContextProvider> logger,
+        IOptions<GitHubOptions> options)
     {
         _logger = logger;
         _client = new GitHubClient(new ProductHeaderValue("gitwho2blame"))

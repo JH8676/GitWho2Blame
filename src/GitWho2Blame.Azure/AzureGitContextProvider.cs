@@ -28,6 +28,7 @@ public class AzureGitContextProvider : IGitContextProvider
         _client = connection.GetClient<GitHttpClient>();
     }
     
+    // TODO only seems to get prs and not commits
     public async Task<List<CodeChangeSummary>> GetCodeChangesAsync(
         string relativeFilePath,
         string repoName,
@@ -37,7 +38,7 @@ public class AzureGitContextProvider : IGitContextProvider
         DateTime since,
         CancellationToken cancellationToken = default)
     {
-        // caching, this doesnt change much
+        //TODO: caching, this doesnt change much
         var repositories = await _client.GetRepositoriesAsync(
             _options.ProjectId,
             cancellationToken: cancellationToken);
@@ -51,11 +52,12 @@ public class AzureGitContextProvider : IGitContextProvider
         _logger.LogInformation("Found repository {RepositoryName} with ID {RepositoryId} in project {ProjectId}",
             repository.Name, repository.Id, _options.ProjectId);
         
-        var commits = await _client.GetCommitsAsync(
+        var commitSummaries = await _client.GetCommitsAsync(
             _options.ProjectId,
             repository.Id,
             new GitQueryCommitsCriteria
             {
+                // TODO: here if fix for only getting PRs?
                 // ItemVersion = new GitVersionDescriptor
                 // {
                 //     VersionType = GitVersionType.Branch,
@@ -67,24 +69,161 @@ public class AzureGitContextProvider : IGitContextProvider
             cancellationToken: cancellationToken);
         
         _logger.LogInformation("Found {CommitCount} commits for file {RelativeFilePath} in repository {RepoName} since {Since}",
-            commits.Count, relativeFilePath, repoName, since);
+            commitSummaries.Count, relativeFilePath, repoName, since);
 
-        foreach (var commit in commits)
+        var changeSummaries = new List<CodeChangeSummary>();
+        foreach (var commitSummary in commitSummaries)
         {
-            var relevantChanges = commit.Changes
-                .Where(c => c.Item.Path.Equals(relativeFilePath, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var commit = await _client.GetCommitAsync(
+                _options.ProjectId,
+                commitSummary.CommitId,
+                repository.Id,
+                cancellationToken: cancellationToken);
             
-            _logger.LogInformation("Processing commit {CommitId} with {ChangeCount} changes for file {RelativeFilePath}",
-                commit.CommitId, relevantChanges.Count, relativeFilePath);
-
-            foreach (var change in relevantChanges)
+            var parentCommitId = commit.Parents.FirstOrDefault();
+            if (parentCommitId == null)
             {
-                _logger.LogInformation("Change type: {ChangeType}, New content: {NewContent}",
-                    change.ChangeType, change.NewContent?.Content ?? "No content");
+                // TODO is this wrong, no parent commit all adds? should still return this
+                _logger.LogWarning("Commit {CommitId} has no parent commits, skipping",
+                    commitSummary.CommitId);
+                continue;
             }
+            
+            var commitFileContent = await _client.GetItemContentAsync(
+                _options.ProjectId,
+                repository.Id,
+                relativeFilePath,
+                versionDescriptor: new GitVersionDescriptor()
+                {
+                    Version = commitSummary.CommitId,
+                    VersionType = GitVersionType.Commit
+                },
+                cancellationToken: cancellationToken);
+            
+            var parentCommitFileContent = await _client.GetItemContentAsync(
+                _options.ProjectId,
+                repository.Id,
+                relativeFilePath,
+                versionDescriptor: new GitVersionDescriptor()
+                {
+                    Version = parentCommitId,
+                    VersionType = GitVersionType.Commit
+                },
+                cancellationToken: cancellationToken);
+            
+            var diff = await _client.GetFileDiffsAsync(
+                new FileDiffsCriteria()
+                {
+                    BaseVersionCommit = parentCommitId,
+                    TargetVersionCommit = commitSummary.CommitId,
+                    FileDiffParams =
+                    [
+                        new FileDiffParams
+                        {
+                            Path = relativeFilePath,
+                            OriginalPath = relativeFilePath  // TODO handle file path changing?
+                        }
+                    ]
+                },
+                _options.ProjectId,
+                repository.Id,
+                
+                cancellationToken: cancellationToken);
+
+            var relevantChanges =
+                diff.SelectMany(d => d.LineDiffBlocks.Where(ldb => 
+                    ldb.ModifiedLineNumberStart >= startLine &&
+                    ldb.ChangeType != LineDiffBlockChangeType.None));
+            
+            var changedLinesByType = relevantChanges
+                .GroupBy(ldb => ldb.ChangeType)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.SelectMany(ldb =>
+                            Enumerable.Range(ldb.ModifiedLineNumberStart, ldb.ModifiedLinesCount + 1))
+                        .Distinct()
+                        .ToArray()
+                );
+            
+            var changedLines = GetChangedLines(
+                parentCommitFileContent,
+                commitFileContent,
+                startLine,
+                endLine,
+                changedLinesByType);
+
+            if (changedLines.Length == 0)
+            {
+                _logger.LogInformation("No changed lines found for commit {CommitId} in file {RelativeFilePath}",
+                    commitSummary.CommitId, relativeFilePath);
+                continue;
+            }
+            
+            var changeSummary = new CodeChangeSummary(
+                commitSummary.CommitId,
+                commit.Author.Name,
+                commit.Comment,
+                commit.Author.Date,
+                changedLines);
+
+            changeSummaries.Add(changeSummary);
+        }
+
+        return changeSummaries;
+    }
+    
+    private static string[] GetChangedLines(
+        Stream parentStream, 
+        Stream currentStream, 
+        int startLine, 
+        int endLine, 
+        Dictionary<LineDiffBlockChangeType, int[]> changedLineNumbersByType)
+    {
+        var lines = new List<string>();
+        using var currentReader = new StreamReader(currentStream);
+        using var parentReader = new StreamReader(parentStream);
+        
+        var currentLine = 1;
+        
+        // TODO handle different lengths of streams, if one is shorter than the other
+        while (!currentReader.EndOfStream && !parentReader.EndOfStream)
+        {
+            var currentStreamLine = currentReader.ReadLine();
+            var parentStreamLine = parentReader.ReadLine();
+            
+            if (currentLine >= startLine && currentLine <= endLine)
+            {
+                var change = changedLineNumbersByType
+                    .FirstOrDefault(kvp => kvp.Value.Contains(currentLine));
+
+                switch (change.Key)
+                {
+                    // TODO add line helper to build adds and deletes
+                    case LineDiffBlockChangeType.None:
+                        break;
+                    case LineDiffBlockChangeType.Add:
+                        lines.Add($"+{currentStreamLine}");
+                        break;
+                    case LineDiffBlockChangeType.Delete:
+                        lines.Add($"-{parentStreamLine}");
+                        break;
+                    case LineDiffBlockChangeType.Edit:
+                        lines.Add($"-{parentStreamLine}");
+                        lines.Add($"+{currentStreamLine}");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            if (currentLine > endLine)
+            {
+                break;
+            }
+            
+            currentLine++;
         }
         
-        return new List<CodeChangeSummary>();
+        return lines.ToArray();
     }
 }
