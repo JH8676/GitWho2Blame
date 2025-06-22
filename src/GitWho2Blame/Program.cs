@@ -1,30 +1,39 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.CommandLine;
+using GitWho2Blame.Cli;
+using Microsoft.Extensions.Hosting;
 using GitWho2Blame.Git.Startup;
 using GitWho2Blame.MCP.Startup;
 using GitWho2Blame.Startup;
-using Microsoft.AspNetCore.Builder;
 using Serilog;
 
 using ServiceExtensions = GitWho2Blame.Startup.ServiceExtensions;
 
-// var builder = Host.CreateApplicationBuilder(args);
-var builder = WebApplication.CreateBuilder(args);
+IHostApplicationBuilder builder;
 
-builder.Logging.ConfigureLogging();
+var rootCommand = new RootCommand
+{
+    CliOptions.GitContextProviderOption,
+    CliOptions.TransportTypeOption
+};
 
-ServiceExtensions.AddGlobalExceptionHandlers();
+rootCommand.SetAction(async parseResult =>
+{
+    var transportType = parseResult.GetValue(CliOptions.TransportTypeOption);
+    builder = CliOptionHandlers.HandleTransportType(transportType, args);
 
-builder.Services
-    .HandleArgs(builder.Configuration, args)
-    .AddGitServices()
-    .AddMcpServerServices();
+    var gitContextProvider = parseResult.GetValue(CliOptions.GitContextProviderOption);
+    CliOptionHandlers.HandleGitContextProvider(gitContextProvider, builder);
+    
+    builder.Logging.ConfigureLogging();
 
-Log.Information("GitWho2Blame MCP server starting...");
+    ServiceExtensions.AddGlobalExceptionHandlers();
 
-var app = builder.Build();
+    builder.Services
+        .AddGitServices()
+        .AddMcpServerServices(transportType);
 
-app.MapMcp("/mcp");
+    Log.Information("GitWho2Blame MCP server starting...");
+    await builder.RunAppAsync();
+});
 
-await app.RunAsync();
-
-// await builder.Build().RunAsync();
+await rootCommand.Parse(args).InvokeAsync();

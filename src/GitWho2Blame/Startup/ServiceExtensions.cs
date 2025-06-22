@@ -1,8 +1,4 @@
 using System.Runtime.InteropServices;
-using GitWho2Blame.Azure.Startup;
-using GitWho2Blame.GitHub.Startup;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -54,33 +50,5 @@ public static class ServiceExtensions
             Log.Fatal(e.Exception, "Unobserved task exception");
             Log.CloseAndFlush();
         };
-    }
-
-    public static IServiceCollection HandleArgs(this IServiceCollection services, IConfigurationManager configuration, string[] args)
-    {
-        switch (args)
-        {
-            case ["--git-context-provider", var provider]:
-            switch (provider)
-            {
-                case "github":
-                {
-                    services.AddGitHubServices(configuration);
-                    break;
-                }
-                case "azure":
-                {
-                    services.AddAzureGitServices(configuration);
-                    break;
-                }
-                default: throw new ArgumentException($"Unknown git context provider: {provider}");
-            }
-
-            break;
-    
-            default: throw new ArgumentException("Expected --git-context-provider argument");
-        };
-        
-        return services;
     }
 }
