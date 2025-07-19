@@ -17,14 +17,11 @@ public class AzureGitContextProvider : IGitContextProvider
     
     public AzureGitContextProvider(
         ILogger<AzureGitContextProvider> logger,
-        IOptions<AzureGitOptions> options)
+        IOptions<AzureGitOptions> options,
+        IVssConnection connection)
     {
         _logger = logger;
         _options = options.Value;
-        
-        var connection = new VssConnection(
-            _options.OrgUri,
-            new VssBasicCredential(string.Empty, _options.Token));
         _client = connection.GetClient<GitHttpClient>();
     }
     

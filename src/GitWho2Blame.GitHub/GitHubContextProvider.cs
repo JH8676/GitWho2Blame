@@ -13,17 +13,14 @@ public class GitHubContextProvider : IGitContextProvider
     private const string EndOfFileMarker = @"\ No newline at end of file";
     
     private readonly ILogger<GitHubContextProvider> _logger;
-    private readonly GitHubClient _client;
+    private readonly IGitHubClient _client;
     
     public GitHubContextProvider(
         ILogger<GitHubContextProvider> logger,
-        IOptions<GitHubOptions> options)
+        IGitHubClient client)
     {
         _logger = logger;
-        _client = new GitHubClient(new ProductHeaderValue(nameof(GitWho2Blame).ToLower()))
-        {
-            Credentials = new Credentials(options.Value.Token)
-        };
+        _client = client;
     }
     
     public async Task<List<CodeChangeSummary>> GetCodeChangesAsync(
@@ -76,10 +73,6 @@ public class GitHubContextProvider : IGitContextProvider
             // TODO: improve this logic
             for (var i = 0; i < patchLines.Length; i++)
             {
-                var unchangedLineCount = 0;
-                var addedLineCount = 0;
-                var deletedLineCount = 0;
-                
                 var line = patchLines[i];
                 
                 var hunkHeaderMatch = RegexHelpers.GitHubHunkHeaderRegex().Match(line);
@@ -87,54 +80,21 @@ public class GitHubContextProvider : IGitContextProvider
                 {
                     continue;
                 }
+
+                i++;
                
                 var originalStart = int.Parse(hunkHeaderMatch.Groups[1].Value);
                 var newStart = int.Parse(hunkHeaderMatch.Groups[3].Value);
                 var newCount = string.IsNullOrEmpty(hunkHeaderMatch.Groups[4].Value) ? 1 : int.Parse(hunkHeaderMatch.Groups[4].Value);
                 var newEnd = newStart + newCount - 1;
 
-                if (!(newEnd >= startLine && newStart <= endLine))
+                if (!(newEnd >= startLine || newStart <= endLine))
                 {
                     continue;
                 }
-
-                for (var j = i + 1; j < patchLines.Length; j++)
-                {
-                    line = patchLines[j];
-                    
-                    hunkHeaderMatch = RegexHelpers.GitHubHunkHeaderRegex().Match(line);
-                    if (hunkHeaderMatch.Success)
-                    {
-                        i = j - 1;
-                        break;
-                    }
-                    
-                    if (line == EndOfFileMarker)
-                    {
-                        // Skip the end of file marker
-                        continue;
-                    }
-                    
-                    switch (line[0])
-                    {
-                        case '+':
-                            var newLineNumber = newStart + addedLineCount + unchangedLineCount;
-                            linesChanged.Add(CodeLine.Add(newLineNumber, line));
-                            
-                            addedLineCount++;
-                            break;
-                        case '-':
-                            var originalLineNumber = originalStart + deletedLineCount + unchangedLineCount;
-                            linesChanged.Add(CodeLine.Delete(originalLineNumber, line));
-                            
-                            deletedLineCount++;
-                            break;
                 
-                        default:
-                            unchangedLineCount++;
-                            break;
-                    }
-                }
+                var linesChangedInHunk = GetLineChanges(ref i, newStart, originalStart, patchLines);
+                linesChanged.AddRange(linesChangedInHunk);
             }
             
             var codeChangeSummary = new CodeChangeSummary(
@@ -148,5 +108,63 @@ public class GitHubContextProvider : IGitContextProvider
         }
         
         return result;
+    }
+
+    private static List<CodeLine> GetLineChanges(ref int index, int newStart, int originalStart, string[] patchLines)
+    {
+        var linesChanged = new List<CodeLine>();
+        var unchangedLineCount = 0;
+        var addedLineCount = 0;
+        var deletedLineCount = 0;
+        
+        while (index < patchLines.Length)
+        {
+            var line = patchLines[index];
+
+            if (RegexHelpers.GitHubHunkHeaderRegex().Match(line).Success)
+            {
+                index--;
+                break;
+            }
+            
+            if (line == EndOfFileMarker)
+            {
+                // Skip the end of file marker
+                index++;
+                continue;
+            }
+                    
+            switch (line[0])
+            {
+                case '+':
+                    var newLineNumber = newStart + addedLineCount + unchangedLineCount;
+                    linesChanged.Add(new CodeLine
+                    {
+                        LineNumber = newLineNumber,
+                        Content = line
+                    });
+                            
+                    addedLineCount++;
+                    break;
+                case '-':
+                    var originalLineNumber = originalStart + deletedLineCount + unchangedLineCount;
+                    linesChanged.Add(new CodeLine
+                    {
+                        LineNumber = originalLineNumber,
+                        Content = line
+                    });
+                            
+                    deletedLineCount++;
+                    break;
+                
+                default:
+                    unchangedLineCount++;
+                    break;
+            }
+            
+            index++;
+        }
+        
+        return linesChanged;
     }
 }

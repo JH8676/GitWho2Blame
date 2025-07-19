@@ -2,6 +2,9 @@ using GitWho2Blame.Azure.Options;
 using GitWho2Blame.MCP.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace GitWho2Blame.Azure.Startup;
 
@@ -24,7 +27,15 @@ public static class ServiceExtensions
                 : throw new ArgumentException("Invalid or missing AZURE_GIT_ORG_URI environment variable");
         });
         
-        services.AddSingleton<IGitContextProvider, AzureGitContextProvider>();
+        services.AddScoped<IVssConnection>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<AzureGitOptions>>().Value;
+            return new VssConnection(
+                options.OrgUri, 
+                new VssBasicCredential(string.Empty, options.Token));
+        });
+        
+        services.AddScoped<IGitContextProvider, AzureGitContextProvider>();
         
         return services;
     }
