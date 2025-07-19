@@ -23,7 +23,12 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
     }
     
     [McpServerTool, Description("Summarizes the history of changes in a specific section of a file via looking a diffs in git commits. The summary includes commit SHA, author, message, date, and the changed lines in the given line range.")]
-    public async Task<string> GetCodeChangesSummaryAsync(BaseRequest request, string repoName, int startLine, int endLine)
+    public async Task<string> GetCodeChangesSummaryAsync(
+        BaseRequest request, 
+        string repoName, 
+        int startLine, 
+        int endLine,
+        DateTime since)
     {
         logger.LogInformation("Getting code changes summary for {RelativeFilePath} in repository {RepoRootPath} from line {StartLine} to line {EndLine}",
             request.RelativeFilePath, 
@@ -44,7 +49,7 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
             owner,
             startLine,
             endLine,
-            DateTime.Now.AddDays(-60)); // TODO remove hardcoded date, use a parameter instead
+            since);
         
         var response = JsonSerializer.Serialize(changes);
         return response;
