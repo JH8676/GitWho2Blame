@@ -130,17 +130,28 @@ public class AzureGitContextProvider : IGitContextProvider
                 
                 cancellationToken: cancellationToken);
 
-            var relevantChanges =
-                diff.SelectMany(d => d.LineDiffBlocks.Where(ldb => 
-                    ldb.ModifiedLineNumberStart >= startLine &&
-                    ldb.ChangeType != LineDiffBlockChangeType.None));
+            var relevantChanges = diff
+                .SelectMany(d => d.LineDiffBlocks.Where(ldb => 
+                    (ldb.ModifiedLineNumberStart >= startLine || ldb.OriginalLineNumberStart >= startLine) &&
+                    ldb.ChangeType != LineDiffBlockChangeType.None))
+                .ToList();
             
-            var changedLinesByType = relevantChanges
+            var currentChangedLinesByType = relevantChanges
                 .GroupBy(ldb => ldb.ChangeType)
                 .ToDictionary(
                     g => g.Key,
                     g => g.SelectMany(ldb =>
-                            Enumerable.Range(ldb.ModifiedLineNumberStart, ldb.ModifiedLinesCount + 1))
+                            Enumerable.Range(ldb.ModifiedLineNumberStart, ldb.ModifiedLinesCount))
+                        .Distinct()
+                        .ToArray()
+                );
+            
+            var parentChangedLinesByType = relevantChanges
+                .GroupBy(ldb => ldb.ChangeType)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.SelectMany(ldb =>
+                            Enumerable.Range(ldb.OriginalLineNumberStart, ldb.OriginalLinesCount))
                         .Distinct()
                         .ToArray()
                 );
@@ -150,7 +161,8 @@ public class AzureGitContextProvider : IGitContextProvider
                 commitFileContent,
                 startLine,
                 endLine,
-                changedLinesByType);
+                currentChangedLinesByType,
+                parentChangedLinesByType);
 
             if (changedLines.Length == 0)
             {
@@ -172,58 +184,119 @@ public class AzureGitContextProvider : IGitContextProvider
         return changeSummaries;
     }
     
-    private static string[] GetChangedLines(
+    private static CodeLine[] GetChangedLines(
         Stream parentStream, 
         Stream currentStream, 
         int startLine, 
-        int endLine, 
-        Dictionary<LineDiffBlockChangeType, int[]> changedLineNumbersByType)
+        int endLine,
+        Dictionary<LineDiffBlockChangeType, int[]> currentChangedLinesByType,
+        Dictionary<LineDiffBlockChangeType, int[]> parentChangedLinesByType)
     {
-        var lines = new List<string>();
-        using var currentReader = new StreamReader(currentStream);
-        using var parentReader = new StreamReader(parentStream);
+        var parent = ParseContent(
+            parentStream, 
+            startLine, 
+            endLine, 
+            parentChangedLinesByType,
+            (changeType, lineNumber, line) =>
+            {
+                return changeType switch
+                {
+                    LineDiffBlockChangeType.Delete or LineDiffBlockChangeType.Edit => CodeLine.Delete(lineNumber, line),
+                    _ => null
+                };
+            });
         
+        var current = ParseContent(
+            currentStream, 
+            startLine, 
+            endLine, 
+            currentChangedLinesByType,
+            (changeType, lineNumber, line) =>
+            {
+                return changeType switch
+                {
+                    LineDiffBlockChangeType.Add or LineDiffBlockChangeType.Edit => CodeLine.Add(lineNumber, line),
+                    _ => null
+                };
+            });
+        
+        var mergedLines = MergeChanges(parent, current);
+        return mergedLines;
+    }
+    
+    private static CodeLine[] ParseContent(
+        Stream fileContent,
+        int startLine,
+        int endLine,
+        Dictionary<LineDiffBlockChangeType, int[]> changedLineNumbersByType,
+        Func<LineDiffBlockChangeType, int, string, CodeLine?> lineHandler)
+    {
+        var lines = new List<CodeLine>();
+        using var reader = new StreamReader(fileContent);
+
         var currentLine = 1;
-        
-        // TODO handle different lengths of streams, if one is shorter than the other
-        while (!currentReader.EndOfStream && !parentReader.EndOfStream)
+        while (!reader.EndOfStream)
         {
-            var currentStreamLine = currentReader.ReadLine();
-            var parentStreamLine = parentReader.ReadLine();
-            
+            var line = reader.ReadLine();
             if (currentLine >= startLine && currentLine <= endLine)
             {
                 var change = changedLineNumbersByType
                     .FirstOrDefault(kvp => kvp.Value.Contains(currentLine));
 
-                switch (change.Key)
+                var codeLine = lineHandler(change.Key, currentLine, line ?? string.Empty);
+                if (codeLine != null)
                 {
-                    // TODO add line helper to build adds and deletes
-                    case LineDiffBlockChangeType.None:
-                        break;
-                    case LineDiffBlockChangeType.Add:
-                        lines.Add($"+{currentStreamLine}");
-                        break;
-                    case LineDiffBlockChangeType.Delete:
-                        lines.Add($"-{parentStreamLine}");
-                        break;
-                    case LineDiffBlockChangeType.Edit:
-                        lines.Add($"-{parentStreamLine}");
-                        lines.Add($"+{currentStreamLine}");
-                        break;
-                    default:
-                        break;
+                    lines.Add(codeLine);
                 }
             }
-            
+
             if (currentLine > endLine)
             {
                 break;
             }
-            
+
             currentLine++;
         }
-        
+
         return lines.ToArray();
+    }
+    
+    private static CodeLine[] MergeChanges(CodeLine[] parent, CodeLine[] current)
+    {
+        var result = new CodeLine[parent.Length + current.Length];
+        int i = 0, j = 0, x = 0;
+
+        while (i < parent.Length || j < current.Length)
+        {
+            int? parentLine = i < parent.Length ? parent[i].LineNumber : null;
+            int? currentLine = j < current.Length ? current[j].LineNumber : null;
+            
+            if (parentLine.HasValue && (!currentLine.HasValue || parentLine.Value <= currentLine.Value))
+            {
+                AddConsecutiveLines(parent, ref result, ref i, ref x);
+            }
+            else
+            {
+                AddConsecutiveLines(current, ref result, ref j, ref x);
+            }
+        }
+
+        return result.ToArray();
+    }
+    
+    private static void AddConsecutiveLines(
+        CodeLine[] lines,
+        ref CodeLine[] result,
+        ref int lineIndex,
+        ref int resultIndex)
+    {
+        // Add the first line
+        result[resultIndex++] = lines[lineIndex++];
+        
+        // Add consecutive lines after the first
+        while (lineIndex < lines.Length && lines[lineIndex].LineNumber == lines[lineIndex-1].LineNumber + 1)
+        {
+            result[resultIndex++] = lines[lineIndex++];
+        }
     }
 }

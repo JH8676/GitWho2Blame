@@ -22,8 +22,7 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
         return JsonSerializer.Serialize(changes);
     }
     
-    // TODO: improve description, agent did not use this when I asked what had changed in a section, only when mentioning commits
-    [McpServerTool, Description("Summarizes GitHub commits that affected a specific section of a file. The summary includes commit SHA, author, message, date, and the changed lines in the given line range.")]
+    [McpServerTool, Description("Summarizes the history of changes in a specific section of a file via looking a diffs in git commits. The summary includes commit SHA, author, message, date, and the changed lines in the given line range.")]
     public async Task<string> GetCodeChangesSummaryAsync(BaseRequest request, string repoName, int startLine, int endLine)
     {
         logger.LogInformation("Getting code changes summary for {RelativeFilePath} in repository {RepoRootPath} from line {StartLine} to line {EndLine}",
@@ -45,7 +44,7 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
             owner,
             startLine,
             endLine,
-            DateTime.Now.AddDays(-30)); // TODO remove hardcoded date, use a parameter instead
+            DateTime.Now.AddDays(-60)); // TODO remove hardcoded date, use a parameter instead
         
         var response = JsonSerializer.Serialize(changes);
         return response;

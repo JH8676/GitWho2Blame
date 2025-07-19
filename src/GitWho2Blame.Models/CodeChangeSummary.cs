@@ -5,5 +5,5 @@ public record CodeChangeSummary(
     string Author,
     string Message,
     DateTimeOffset Date,
-    string[] ChangedLines
+    CodeLine[] ChangedLines
 );
