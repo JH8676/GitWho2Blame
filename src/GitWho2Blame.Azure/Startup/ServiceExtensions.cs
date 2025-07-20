@@ -14,7 +14,7 @@ public static class ServiceExtensions
     {
         services.Configure<AzureGitOptions>(options =>
         {
-            options.Token = Environment.GetEnvironmentVariable("TOKEN") ?? throw new ArgumentNullException("AZURE_GIT_TOKEN");
+            options.Token = Environment.GetEnvironmentVariable("TOKEN") ?? throw new ArgumentException("Missing TOKEN environment variable");
             
             var projectId = Environment.GetEnvironmentVariable("AZURE_GIT_PROJECT_ID");
             options.ProjectId = Guid.TryParse(projectId, out var projectIdGuid)

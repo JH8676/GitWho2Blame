@@ -8,8 +8,6 @@ using Serilog;
 
 using ServiceExtensions = GitWho2Blame.Startup.ServiceExtensions;
 
-IHostApplicationBuilder builder;
-
 var rootCommand = new RootCommand
 {
     CliOptions.GitContextProviderOption,
@@ -19,7 +17,7 @@ var rootCommand = new RootCommand
 rootCommand.SetAction(async parseResult =>
 {
     var transportType = parseResult.GetValue(CliOptions.TransportTypeOption);
-    builder = CliOptionHandlers.HandleTransportType(transportType, args);
+    var builder = CliOptionHandlers.HandleTransportType(transportType, args);
 
     var gitContextProvider = parseResult.GetValue(CliOptions.GitContextProviderOption);
     CliOptionHandlers.HandleGitContextProvider(gitContextProvider, builder);

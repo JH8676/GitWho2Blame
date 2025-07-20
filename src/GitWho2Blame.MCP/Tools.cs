@@ -1,7 +1,8 @@
 using System.ComponentModel;
-using System.Text.Json;
 using GitWho2Blame.MCP.Abstractions;
+using GitWho2Blame.Models;
 using GitWho2Blame.Models.Requests;
+using GitWho2Blame.Models.Responses;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
 
@@ -10,25 +11,13 @@ namespace GitWho2Blame.MCP;
 [McpServerToolType]
 public class Tools(IGitService gitService, IGitContextProvider gitContextProvider, ILogger<Tools> logger)
 {
-    [McpServerTool, Description("Gets the blame for a range of lines in a file.")]
-    public string Blame(BaseRequest request, int startLine, int endLine)
-    {
-        var changes = gitService.GetBlameForLinesAsync(
-            request.RelativeFilePath, 
-            request.RepoRootPath,
-            startLine, 
-            endLine);
-        
-        return JsonSerializer.Serialize(changes);
-    }
-    
     [McpServerTool, Description("Summarizes the history of changes in a specific section of a file via looking a diffs in git commits. The summary includes commit SHA, author, message, date, and the changed lines in the given line range.")]
-    public async Task<string> GetCodeChangesSummaryAsync(
+    public async Task<Response<List<CodeChangeSummary>>> GetCodeChangesSummaryAsync(
         BaseRequest request, 
         string repoName, 
         int startLine, 
         int endLine,
-        DateTime since)
+        [Description("Only include changes since this date. Format: ISO 8601 (e.g., 2024-06-20T15:30:00Z).")] DateTime since)
     {
         logger.LogInformation("Getting code changes summary for {RelativeFilePath} in repository {RepoRootPath} from line {StartLine} to line {EndLine}",
             request.RelativeFilePath, 
@@ -40,7 +29,7 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
         if (owner == null)
         {
             logger.LogInformation("No owner found for {RepoRootPath}", request.RepoRootPath);
-            return "No owner found for the repository.";
+            return Response<List<CodeChangeSummary>>.Failure("Repository owner not found.");
         }
         
         var changes = await gitContextProvider.GetCodeChangesAsync(
@@ -51,7 +40,6 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
             endLine,
             since);
         
-        var response = JsonSerializer.Serialize(changes);
-        return response;
+        return Response<List<CodeChangeSummary>>.Success(changes);
     }
 }

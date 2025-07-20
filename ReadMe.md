@@ -67,6 +67,14 @@ Perfect for collaboration, onboarding, debugging, or just making sense of legacy
     }
     ```
 
+## 🔗 Useful Links
+
+- [MCP Protocol Introduction](https://modelcontextprotocol.io/introduction)
+- [GitHub Copilot: Extending Copilot Chat with MCP](https://docs.github.com/en/copilot/how-tos/context/model-context-protocol/extending-copilot-chat-with-mcp)
+- [JetBrains Rider: Configure an MCP Server](https://www.jetbrains.com/help/ai-assistant/configure-an-mcp-server.html)
+- [VS Code: Use MCP servers in VS Code](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
+- [GitWho2Blame Releases](https://github.com/JH8676/GitWho2Blame/releases)
+
 ## ⚙️ CLI Options
 
 Option: `--git-context-provider`, alias: `-g`  
