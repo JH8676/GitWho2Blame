@@ -1,6 +1,6 @@
 ﻿using System.CommandLine;
+using GitWho2Blame.Cache.Startup;
 using GitWho2Blame.Cli;
-using Microsoft.Extensions.Hosting;
 using GitWho2Blame.Git.Startup;
 using GitWho2Blame.MCP.Startup;
 using GitWho2Blame.Startup;
@@ -27,6 +27,7 @@ rootCommand.SetAction(async parseResult =>
     ServiceExtensions.AddGlobalExceptionHandlers();
 
     builder.Services
+        .AddCacheServices()
         .AddGitServices()
         .AddMcpServerServices(transportType);
 

@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\GitWho2Blame.Cache\GitWho2Blame.Cache.csproj" />
       <ProjectReference Include="..\GitWho2Blame.MCP\GitWho2Blame.MCP.csproj" />
     </ItemGroup>
 

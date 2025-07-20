@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using GitWho2Blame.Cache.Abstractions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Octokit;
 
@@ -113,6 +114,7 @@ public class GitHubContextProviderTests
         // Arrange
         var logger = Mock.Of<ILogger<GitHubContextProvider>>();
         var clientMock = new Mock<IGitHubClient>();
+        var cacheMock = new Mock<ICacheService>();
 
         var file = new GitHubCommitFile(
             filename: "test.txt",
@@ -187,14 +189,19 @@ public class GitHubContextProviderTests
             files: new List<GitHubCommitFile>()
         );
 
-        clientMock.Setup(c => c.Repository.Commit.GetAll(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CommitRequest>()))
+        cacheMock.Setup(c => c.GetOrAddAsync(
+                It.Is<string>(k => k.StartsWith("github:commits:")),
+                It.IsAny<Func<Task<IReadOnlyList<GitHubCommit>?>>>(),
+                It.IsAny<TimeSpan>()))
             .ReturnsAsync(new List<GitHubCommit> { commitSummary });
-        clientMock.Setup(c => c.Repository.Commit.Get(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        
+        cacheMock.Setup(c => c.GetOrAddAsync(
+                It.Is<string>(k => k.StartsWith("github:commit:")),
+                It.IsAny<Func<Task<GitHubCommit?>>>(),
+                It.IsAny<TimeSpan>()))
             .ReturnsAsync(githubCommit);
 
-        var provider = new GitHubContextProvider(logger, clientMock.Object);
+        var provider = new GitHubContextProvider(logger, clientMock.Object, cacheMock.Object);
 
         // Act
         var result = await provider.GetCodeChangesAsync(
