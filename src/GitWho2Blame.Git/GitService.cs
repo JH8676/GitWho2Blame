@@ -27,7 +27,7 @@ public class GitService(ILogger<GitService> logger)
                 {
                     result.Add(new CodeLineChange
                     {
-                        Line = line,
+                        LineNumber = line,
                         Author = hunk.FinalSignature.Name,
                         Email = hunk.FinalSignature.Email,
                         CommitSha = hunk.FinalCommit.Sha,
