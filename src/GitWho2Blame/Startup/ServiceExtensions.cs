@@ -9,22 +9,26 @@ public static class ServiceExtensions
     public static ILoggingBuilder ConfigureLogging(this ILoggingBuilder logging)
     {
         const string logDirectoryName = "gitwho2blame";
-        const string logFileName = $"{logDirectoryName}.log";
-        
-        var userLogPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
-            ? Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                logDirectoryName, logFileName)
-            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
-                ? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "Library", "Logs", logDirectoryName, logFileName)
+
+        var logDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), logDirectoryName)
+            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs", logDirectoryName)
                 : throw new PlatformNotSupportedException("Unsupported OS for logging");
-        
-        Directory.CreateDirectory(Path.GetDirectoryName(userLogPath)!);
+
+        Directory.CreateDirectory(logDir);
+        var logPath = Path.Combine(logDir, $"{logDirectoryName}-.log");
 
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.File(userLogPath)
+            .MinimumLevel.Debug()
+            .WriteTo.File(
+                path: logPath,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7,
+                fileSizeLimitBytes: 10_000_000,
+                rollOnFileSizeLimit: true,
+                shared: true
+            )
             .CreateLogger();
         
         return logging

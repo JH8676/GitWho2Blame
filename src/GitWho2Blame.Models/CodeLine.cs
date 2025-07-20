@@ -1,11 +1,10 @@
 namespace GitWho2Blame.Models;
 
-public class CodeLine
+public record CodeLine
 {
+    public int LineNumber { get; init; }
     
-    public int LineNumber { get; set; }
-    
-    public required string Content { get; set; }
+    public required string Content { get; init; }
 
     public static CodeLine Add(int lineNumber, string content)
         => new()

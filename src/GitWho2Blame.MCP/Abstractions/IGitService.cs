@@ -7,4 +7,6 @@ public interface IGitService
     List<CodeLineChange> GetBlameForLinesAsync(string relativeFilePath, string repoRootPath, int startLine, int endLine);
     
     string? GetRepositoryOwner(string repoRootPath);
+    
+    string? GetCurrentBranchName(string repoRootPath);
 }

@@ -1,14 +1,12 @@
 ﻿using System.CommandLine;
+using GitWho2Blame.Cache.Startup;
 using GitWho2Blame.Cli;
-using Microsoft.Extensions.Hosting;
 using GitWho2Blame.Git.Startup;
 using GitWho2Blame.MCP.Startup;
 using GitWho2Blame.Startup;
 using Serilog;
 
 using ServiceExtensions = GitWho2Blame.Startup.ServiceExtensions;
-
-IHostApplicationBuilder builder;
 
 var rootCommand = new RootCommand
 {
@@ -19,7 +17,7 @@ var rootCommand = new RootCommand
 rootCommand.SetAction(async parseResult =>
 {
     var transportType = parseResult.GetValue(CliOptions.TransportTypeOption);
-    builder = CliOptionHandlers.HandleTransportType(transportType, args);
+    var builder = CliOptionHandlers.HandleTransportType(transportType, args);
 
     var gitContextProvider = parseResult.GetValue(CliOptions.GitContextProviderOption);
     CliOptionHandlers.HandleGitContextProvider(gitContextProvider, builder);
@@ -29,6 +27,7 @@ rootCommand.SetAction(async parseResult =>
     ServiceExtensions.AddGlobalExceptionHandlers();
 
     builder.Services
+        .AddCacheServices()
         .AddGitServices()
         .AddMcpServerServices(transportType);
 
