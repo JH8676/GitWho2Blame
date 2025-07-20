@@ -57,4 +57,20 @@ public class GitService(ILogger<GitService> logger)
         logger.LogInformation("Repository owner extracted: {Owner}", owner);
         return owner;
     }
+    
+    public string? GetCurrentBranchName(string repoRootPath)
+    {
+        var repoPath = Repository.Discover(repoRootPath);
+        if (repoPath == null)
+        {
+            logger.LogWarning("Could not find repository at path {RepoRootPath}", repoRootPath);
+            return null;
+        }
+    
+        using var repo = new Repository(repoPath);
+        var branchName = repo.Head.FriendlyName;
+    
+        logger.LogInformation("Current branch name is: {BranchName}", branchName);
+        return branchName;
+    }
 }

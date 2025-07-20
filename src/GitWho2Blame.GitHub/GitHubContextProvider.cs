@@ -31,6 +31,7 @@ public class GitHubContextProvider : IGitContextProvider
         string relativeFilePath,
         string repoName,
         string owner,
+        string currentBranchName,
         int startLine,
         int endLine,
         DateTime since,
