@@ -3,6 +3,8 @@
 
 .idea/
 
+publish/
+
 ### DotnetCore ###
 # .NET Core build folders
 bin/
