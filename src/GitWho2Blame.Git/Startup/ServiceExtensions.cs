@@ -12,4 +12,9 @@ public static class ServiceExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddLocalGitContextProvider(this IServiceCollection services)
+    {
+       return services.AddScoped<IGitContextProvider, LocalGitContextProvider>();
+    }
 }

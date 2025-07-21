@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace GitWho2Blame.GitHub.Helpers;
+namespace GitWho2Blame.Common.Helpers;
 
 public static partial class RegexHelpers
 {

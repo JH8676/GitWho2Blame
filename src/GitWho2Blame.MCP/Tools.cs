@@ -41,6 +41,7 @@ public class Tools(IGitService gitService, IGitContextProvider gitContextProvide
         
         var changes = await gitContextProvider.GetCodeChangesAsync(
             request.RelativeFilePath,
+            request.RepoRootPath,
             repoName,
             owner,
             currentBranchName,

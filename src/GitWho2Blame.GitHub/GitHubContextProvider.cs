@@ -1,6 +1,6 @@
 using GitWho2Blame.Cache.Abstractions;
 using GitWho2Blame.Cache.Helpers;
-using GitWho2Blame.GitHub.Helpers;
+using GitWho2Blame.Common.Helpers;
 using GitWho2Blame.MCP.Abstractions;
 using GitWho2Blame.Models;
 using Microsoft.Extensions.Logging;
@@ -29,6 +29,7 @@ public class GitHubContextProvider : IGitContextProvider
     
     public async Task<List<CodeChangeSummary>> GetCodeChangesAsync(
         string relativeFilePath,
+        string repoRootPath,
         string repoName,
         string owner,
         string currentBranchName,
@@ -95,34 +96,15 @@ public class GitHubContextProvider : IGitContextProvider
                 continue;
             }
             
-            var patchLines = file.Patch.Split(Environment.NewLine);
-            var linesChanged = new List<CodeLine>();
-            
-            // TODO: improve this logic
-            for (var i = 0; i < patchLines.Length; i++)
+            var linesChanged = GitDiffParser.ParsePatch(file.Patch, startLine, endLine);
+
+            if (linesChanged.Count == 0)
             {
-                var line = patchLines[i];
+                _logger.LogInformation("No lines changed in file {RelativeFilePath} for commit {Sha}, skipping",
+                    relativeFilePath,
+                    commitSummary.Sha);
                 
-                var hunkHeaderMatch = RegexHelpers.GitHubHunkHeaderRegex().Match(line);
-                if (!hunkHeaderMatch.Success)
-                {
-                    continue;
-                }
-
-                i++;
-               
-                var originalStart = int.Parse(hunkHeaderMatch.Groups[1].Value);
-                var newStart = int.Parse(hunkHeaderMatch.Groups[3].Value);
-                var newCount = string.IsNullOrEmpty(hunkHeaderMatch.Groups[4].Value) ? 1 : int.Parse(hunkHeaderMatch.Groups[4].Value);
-                var newEnd = newStart + newCount - 1;
-
-                if (!(newEnd >= startLine || newStart <= endLine))
-                {
-                    continue;
-                }
-                
-                var linesChangedInHunk = GetLineChanges(ref i, newStart, originalStart, patchLines);
-                linesChanged.AddRange(linesChangedInHunk);
+                continue;
             }
             
             var codeChangeSummary = new CodeChangeSummary(
@@ -137,62 +119,5 @@ public class GitHubContextProvider : IGitContextProvider
         
         return result;
     }
-
-    private static List<CodeLine> GetLineChanges(ref int index, int newStart, int originalStart, string[] patchLines)
-    {
-        var linesChanged = new List<CodeLine>();
-        var unchangedLineCount = 0;
-        var addedLineCount = 0;
-        var deletedLineCount = 0;
-        
-        while (index < patchLines.Length)
-        {
-            var line = patchLines[index];
-
-            if (RegexHelpers.GitHubHunkHeaderRegex().Match(line).Success)
-            {
-                index--;
-                break;
-            }
-            
-            if (line == EndOfFileMarker)
-            {
-                // Skip the end of file marker
-                index++;
-                continue;
-            }
-                    
-            switch (line[0])
-            {
-                case '+':
-                    var newLineNumber = newStart + addedLineCount + unchangedLineCount;
-                    linesChanged.Add(new CodeLine
-                    {
-                        LineNumber = newLineNumber,
-                        Content = line
-                    });
-                            
-                    addedLineCount++;
-                    break;
-                case '-':
-                    var originalLineNumber = originalStart + deletedLineCount + unchangedLineCount;
-                    linesChanged.Add(new CodeLine
-                    {
-                        LineNumber = originalLineNumber,
-                        Content = line
-                    });
-                            
-                    deletedLineCount++;
-                    break;
-                
-                default:
-                    unchangedLineCount++;
-                    break;
-            }
-            
-            index++;
-        }
-        
-        return linesChanged;
-    }
+    
 }

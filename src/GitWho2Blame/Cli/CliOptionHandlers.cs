@@ -1,5 +1,6 @@
 using GitWho2Blame.Azure.Startup;
 using GitWho2Blame.Enums;
+using GitWho2Blame.Git.Startup;
 using GitWho2Blame.GitHub.Startup;
 using GitWho2Blame.MCP.Enums;
 using Microsoft.AspNetCore.Builder;
@@ -23,6 +24,9 @@ public static class CliOptionHandlers
     {
         switch (gitContextProvider)
         {
+            case GitContextProvider.Local:
+                builder.Services.AddLocalGitContextProvider();
+                break;
             case GitContextProvider.GitHub:
                 builder.Services.AddGitHubServices(builder.Configuration);
                 break;

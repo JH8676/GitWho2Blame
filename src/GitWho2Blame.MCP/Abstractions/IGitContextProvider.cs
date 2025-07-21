@@ -6,6 +6,7 @@ public interface IGitContextProvider
 {
     Task<List<CodeChangeSummary>> GetCodeChangesAsync(
         string relativeFilePath,
+        string repoRootPath,
         string repoName,
         string owner,
         string currentBranchName,
