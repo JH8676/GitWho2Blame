@@ -205,9 +205,15 @@ public class GitHubContextProviderTests
 
         // Act
         var result = await provider.GetCodeChangesAsync(
-            "test.txt", "repo", "owner",  "main", 1, 10, DateTime.UtcNow.AddDays(-1));
+            "test.txt",  "root/path","repo", "owner",  "main", 1, 10, DateTime.UtcNow.AddDays(-1));
 
         // Assert
+        if (expectedLines.Length == 0)
+        {
+            Assert.Empty(result);
+            return;
+        }
+        
         var changedLines = result[0].ChangedLines;
         Assert.Equal(expectedLines.Length, changedLines.Length);
 

@@ -10,9 +10,9 @@ public static class CliOptions
         name: "--git-context-provider",
         aliases: "-g")
     {
-        Description = "The Git context provider to use. Default is 'GitHub'.",
+        Description = "The Git context provider to use. Default is 'Local'.",
         Required = false,
-        DefaultValueFactory = _ => GitContextProvider.GitHub,
+        DefaultValueFactory = _ => GitContextProvider.Local,
         CompletionSources = { Enum.GetNames<GitContextProvider>() },
     };
     

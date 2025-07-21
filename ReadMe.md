@@ -2,11 +2,15 @@
 
 ## Overview
 
-## 🧠 GitWho2Blame – Understand Code Changes, Instantly
+## 🧠 GitWho2Blame – Understand Code Changes Instantly
 
 Ever wondered *why* a piece of code was changed, or *who* made a subtle modification deep in a file? **GitWho2Blame** brings the power of large language models (LLMs) directly into your development workflow. Ask natural language questions about specific lines or changes, and get contextual, AI-powered answers — all without ever leaving your IDE.
 
 Perfect for collaboration, onboarding, debugging, or just making sense of legacy code — GitWho2Blame connects to your favourite Git provider (GitHub or Azure DevOps) and integrates seamlessly with your LSP-compatible IDE using [MCP](https://modelcontextprotocol.io/introduction).
+
+## 🚀 Demo
+
+![MCP Server Demo](./media/demo.gif)
 
 ## 🔧 Setup & Usage
 
@@ -31,7 +35,7 @@ Perfect for collaboration, onboarding, debugging, or just making sense of legacy
             "github"
           ],
           "env": {
-            "TOKEN": "<your_pat_here>",
+            "TOKEN": "<your_pat_here> (only needed if using GitHub or Azure DevOps context providers)",
             "AZURE_GIT_PROJECT_ID": "<your_project_id_here> (only needed for Azure DevOps)",
             "AZURE_GIT_ORG_URI": "<your_organization_uri_here> (only needed for Azure DevOps)"
           }
@@ -58,7 +62,7 @@ Perfect for collaboration, onboarding, debugging, or just making sense of legacy
             "stdio"
           ],
           "env": {
-            "TOKEN": "<your_pat_here>",
+            "TOKEN": "<your_pat_here> (only needed if using GitHub or Azure DevOps context providers)",
             "AZURE_GIT_PROJECT_ID": "<your_project_id_here> (only needed if using Azure)",
             "AZURE_GIT_ORG_URI": "<your_organization_uri_here> (only needed if using Azure)"
           }
@@ -79,8 +83,8 @@ Perfect for collaboration, onboarding, debugging, or just making sense of legacy
 
 Option: `--git-context-provider`, alias: `-g`  
 Description: The Git context provider to use.  
-Default: `github`  
-Valid values: `github`, `azure`
+Default: `local`  
+Valid values: `local`, `github`, `azure`
 
 Option: `--transport-type`, alias: `-t`  
 Description: The transport type to use.  
@@ -89,13 +93,14 @@ Valid values: `stdio`, `http`
 
 ## 🌐 Environment Variables
 
-- `TOKEN`: Required for all providers. A GitHub or Azure DevOps personal access token (PAT).
+- `TOKEN`: Required for GitHub and Azure providers (Not Local). A GitHub or Azure DevOps personal access token (PAT). The token only requires read access for code and repositories.
 - `AZURE_GIT_PROJECT_ID`: Required for Azure DevOps only.
 - `AZURE_GIT_ORG_URI`: Required for Azure DevOps only.
 
 ## 🛠 Supported Git Context Providers
 
-- `github` (default) – requires only `TOKEN`
+- `local` (default) – uses the local Git repository context
+- `github` – requires only `TOKEN`
 - `azure` – requires `TOKEN`, `AZURE_GIT_PROJECT_ID`, and `AZURE_GIT_ORG_URI`
 
 ## 🔌 Supported Transport Types
@@ -116,5 +121,3 @@ GitWho2Blame logs runtime activity to help with debugging and monitoring usage.
   `~/Library/Logs/gitwho2blame/gitwho2blame.log`
 
 The log includes internal operations, warnings, and error information. It does **not** transmit any data externally and is stored only on your machine.
-
-> ⚠️ **Note:** The log file may contain environment variables (such as `TOKEN`) and CLI arguments. Do not share it publicly without redacting sensitive data.

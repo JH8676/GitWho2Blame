@@ -2,6 +2,7 @@ namespace GitWho2Blame.Enums;
 
 public enum GitContextProvider
 {
-    GitHub = 0,
-    Azure = 1,
+    Local = 0,
+    GitHub = 1,
+    Azure = 2,
 }
