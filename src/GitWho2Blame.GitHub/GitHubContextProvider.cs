@@ -10,7 +10,6 @@ namespace GitWho2Blame.GitHub;
 
 public class GitHubContextProvider : IGitContextProvider
 {
-    private const string EndOfFileMarker = @"\ No newline at end of file";
     private const string GitHub = "github";
     
     private readonly ILogger<GitHubContextProvider> _logger;

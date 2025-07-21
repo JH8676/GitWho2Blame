@@ -31,6 +31,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.Cache", "src\G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitWho2Blame.Common", "src\GitWho2Blame.Common\GitWho2Blame.Common.csproj", "{D5630A62-6990-44D3-820D-5BF38C35D3CA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "media", "media", "{49519D13-46AE-4A33-9134-CB8E33DF2E48}"
+	ProjectSection(SolutionItems) = preProject
+		media\demo.gif = media\demo.gif
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

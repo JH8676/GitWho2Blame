@@ -8,6 +8,10 @@ Ever wondered *why* a piece of code was changed, or *who* made a subtle modifica
 
 Perfect for collaboration, onboarding, debugging, or just making sense of legacy code — GitWho2Blame connects to your favourite Git provider (GitHub or Azure DevOps) and integrates seamlessly with your LSP-compatible IDE using [MCP](https://modelcontextprotocol.io/introduction).
 
+## 🚀 Demo
+
+![MCP Server Demo](./media/demo.gif)
+
 ## 🔧 Setup & Usage
 
 ### Option 1: Run from Source (for development or debugging)
