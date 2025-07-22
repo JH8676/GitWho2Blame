@@ -51,10 +51,8 @@ public class LocalGitContextProvider(ILogger<LocalGitContextProvider> logger) : 
             return Task.FromResult(result);
         }
         
-        
         foreach (var commit in commits)
         {
-            
             var parent = commit.Parents.FirstOrDefault();
             var tree = commit.Tree;
             var parentTree = parent?.Tree;

@@ -10,11 +10,19 @@ public static class ServiceExtensions
     {
         const string logDirectoryName = "gitwho2blame";
 
-        var logDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), logDirectoryName)
-            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs", logDirectoryName)
-                : throw new PlatformNotSupportedException("Unsupported OS for logging");
+        string logDir;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), logDirectoryName);
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs", logDirectoryName);
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Unsupported OS for logging");
+        }
 
         Directory.CreateDirectory(logDir);
         var logPath = Path.Combine(logDir, $"{logDirectoryName}-.log");

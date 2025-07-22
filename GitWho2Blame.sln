@@ -34,6 +34,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "media", "media", "{49519D13-46AE-4A33-9134-CB8E33DF2E48}"
 	ProjectSection(SolutionItems) = preProject
 		media\demo.gif = media\demo.gif
+		media\example-1.png = media\example-1.png
+		media\example-2.png = media\example-2.png
+		media\example-3.png = media\example-3.png
 	EndProjectSection
 EndProject
 Global

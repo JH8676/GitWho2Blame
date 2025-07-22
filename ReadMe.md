@@ -6,11 +6,45 @@
 
 Ever wondered *why* a piece of code was changed, or *who* made a subtle modification deep in a file? **GitWho2Blame** brings the power of large language models (LLMs) directly into your development workflow. Ask natural language questions about specific lines or changes, and get contextual, AI-powered answers — all without ever leaving your IDE.
 
-Perfect for collaboration, onboarding, debugging, or just making sense of legacy code — GitWho2Blame connects to your favourite Git provider (GitHub or Azure DevOps) and integrates seamlessly with your LSP-compatible IDE using [MCP](https://modelcontextprotocol.io/introduction).
+Perfect for collaboration, onboarding, debugging, or just making sense of legacy code — GitWho2Blame connects to your favourite Git provider (Local Git, GitHub or Azure DevOps) and integrates seamlessly with your LSP-compatible IDE using [MCP](https://modelcontextprotocol.io/introduction).
 
 ## 🚀 Demo
-
 ![MCP Server Demo](./media/demo.gif)
+
+## Examples 🔍
+
+### 🕵️ Example 1: Investigating Code Changes
+
+Wondering who updated that critical section of logic? Simply select the lines in question and ask:
+```
+Explain what commits have touched this foreach loop recently and why those changes were made
+```
+
+![Example of code investigation](./media/example-1.png)
+
+### 🔄 Example 2: Tracking Evolution of Features
+
+Follow the development journey of specific features:
+```
+Summarize how this service has evolved since June
+```
+
+![Example of understanding complex functions](./media/example-2.png)
+
+### 👥 Example 3: Team Collaboration 
+
+Find out who to ask for more information:
+```
+Who has the most experience with this extension module?
+```
+
+![Example of team collaboration](./media/example-3.png)
+
+## 💬 Feedback
+
+I would love any feedback, ideas or a just prompts that worked well.
+
+Just [start a discussion](https://github.com/JH8676/GitWho2Blame/discussions).
 
 ## 🔧 Setup & Usage
 
