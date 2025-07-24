@@ -44,7 +44,7 @@ Who has the most experience with this extension module?
 
 I would love any feedback, ideas or a just prompts that worked well.
 
-Just [start a discussion](https://github.com/JH8676/GitWho2Blame/discussions).
+Just [start a discussion](https://github.com/JH8676/GitWho2Blame/discussions) or [open an issue](https://github.com/JH8676/GitWho2Blame/issues/new).
 
 ## 🔧 Setup & Usage
 
@@ -149,9 +149,12 @@ GitWho2Blame logs runtime activity to help with debugging and monitoring usage.
 🗂️ **Log File Location:**
 
 - **Windows:**  
-  `%LOCALAPPDATA%\gitwho2blame\gitwho2blame.log`
+  `%LOCALAPPDATA%\gitwho2blame\gitwho2blame-.log`
 
 - **macOS:**  
-  `~/Library/Logs/gitwho2blame/gitwho2blame.log`
+  `~/Library/Logs/gitwho2blame/gitwho2blame-.log`
+
+- **Linux:**  
+  `~/.local/share/gitwho2blame/gitwho2blame-.log`
 
 The log includes internal operations, warnings, and error information. It does **not** transmit any data externally and is stored only on your machine.
